@@ -8,6 +8,7 @@ import java.util.Map;
 import com.hoodiv.javaluator.AbstractEvaluator;
 import com.hoodiv.javaluator.Operator;
 import com.hoodiv.javaluator.Parameters;
+import com.hoodiv.javaluator.Token;
 
 public class TextualOperatorsEvaluator extends AbstractEvaluator<Boolean> {
 	/** The negate unary operator. */
@@ -33,7 +34,8 @@ public class TextualOperatorsEvaluator extends AbstractEvaluator<Boolean> {
 	}
 
 	@Override
-	protected Boolean toValue(String literal, Object evaluationContext) {
+	protected Boolean toValue(Token literalTok, Object evaluationContext) {
+                String literal = literalTok.getString();
 		int index = literal.indexOf('=');
 		if (index>=0) {
 			String variable = literal.substring(0, index);

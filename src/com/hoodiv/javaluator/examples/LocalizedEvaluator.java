@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import com.hoodiv.javaluator.DoubleEvaluator;
 import com.hoodiv.javaluator.Parameters;
+import com.hoodiv.javaluator.Token;
 
 /** An example of how to localize an existing evaluator to match French locale.
  * <br>As a French, I prefer "moyenne" to "avg" and "somme" to "sum".
@@ -37,9 +38,10 @@ public class LocalizedEvaluator extends DoubleEvaluator {
 	}
 
 	@Override
-	protected Double toValue(String literal, Object evaluationContext) {
+	protected Double toValue(Token literalTok, Object evaluationContext) {
 		// Override the method that converts a literal to a number, in order to match with
 		// the French decimal separator
+                String literal = literalTok.getString();
 		try {
 			// For a strange reason, Java thinks that only non breaking spaces are French thousands
 			// separators. So, we will replace spaces in the literal by non breaking spaces
@@ -47,7 +49,7 @@ public class LocalizedEvaluator extends DoubleEvaluator {
 			return format.parse(literal).doubleValue();
 		} catch (ParseException e) {
 			// If the number has a wrong format, throw the right exception.
-			throw new IllegalArgumentException(literal+" is not a number");
+			throw literalTok.getError(literal+" is not a number");
 		}
 	}
 	

@@ -195,11 +195,12 @@ public class DoubleEvaluator extends AbstractEvaluator<Double> {
 	}
 
 	@Override
-	protected Double toValue(String literal, Object evaluationContext) {
+	protected Double toValue(Token literalTok, Object evaluationContext) {
 		ParsePosition p = new ParsePosition(0);
+                String literal = literalTok.getString();
 		Number result = FORMATTER.get().parse(literal, p);
 		if (p.getIndex()==0 || p.getIndex()!=literal.length()) {
-			throw new IllegalArgumentException(literal+" is not a number");
+			throw literalTok.getError(literal+" is not a number");
 		}
 		return result.doubleValue();
 	}

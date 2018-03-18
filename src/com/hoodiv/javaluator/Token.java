@@ -48,6 +48,9 @@ public class Token {
 		return new Token(Kind.CLOSE_BRACKET, pair);
 	}
         
+        public static Token buildArgumentSeparator(String strToken) {
+            return new Token(Kind.FUNCTION_SEPARATOR, strToken);
+        }        
 
         private static final int LINE_CHARS_TO_SHOW = 30;
         public IllegalArgumentException getError(String msg){
@@ -99,6 +102,11 @@ public class Token {
 	}
 
         public String getString(){
+            if(kind.equals(Kind.OPEN_BRACKET)){
+                return ((BracketPair)content).getOpen();
+            } else if(kind.equals(Kind.CLOSE_BRACKET)){
+                return ((BracketPair)content).getClose();
+            }
             return content.toString();
         }        
         
@@ -156,7 +164,7 @@ public class Token {
 		if (!this.kind.equals(Kind.LITERAL)) {
 			throw new IllegalArgumentException();
 		}
-		return (String)this.content;
+		return this.getString();
 	}
 
 	@Override

@@ -119,12 +119,12 @@ public abstract class AbstractEvaluator<T> {
 			if (value==null && evaluationContext!=null && (evaluationContext instanceof AbstractVariableSet)) {
 				value = ((AbstractVariableSet<T>)evaluationContext).get(literal);
 			}
-			values.push(value!=null ? value : toValue(literal, evaluationContext));
+			values.push(value!=null ? value : toValue(token, evaluationContext));
 		} else if (token.isOperator()) {
 			Operator operator = token.getOperator();
 			values.push(evaluate(operator, getArguments(values, operator.getOperandCount()), evaluationContext));
 		} else {
-			throw new IllegalArgumentException();
+			throw token.getError("");
 		}
 	}
 
@@ -166,9 +166,10 @@ public abstract class AbstractEvaluator<T> {
 		throw new RuntimeException("evaluate(Function, Iterator) is not implemented for "+function.getName());
 	}
 	
-	protected void doFunction(Deque<T> values, Function function, int argCount, Object evaluationContext) {
+	protected void doFunction(Deque<T> values, Token functionTok, int argCount, Object evaluationContext) {
+                Function function = functionTok.getFunction();
 		if (function.getMinimumArgumentCount()>argCount || function.getMaximumArgumentCount()<argCount) {
-			throw new IllegalArgumentException("Invalid argument count for "+function.getName());
+			throw functionTok.getError("Invalid argument count for "+function.getName());
 		}
 		values.push(evaluate(function, getArguments(values, argCount), evaluationContext));
 	}
@@ -192,7 +193,7 @@ public abstract class AbstractEvaluator<T> {
 	 * @param evaluationContext The context of the evaluation
 	 * @throws IllegalArgumentException if the literal can't be converted to a value.
 	 */
-	protected abstract T toValue(String literal, Object evaluationContext);
+	protected abstract T toValue(Token literal, Object evaluationContext);
 	
 	/** Evaluates an expression.
 	 * @param expression The expression to evaluate.
@@ -270,7 +271,7 @@ public abstract class AbstractEvaluator<T> {
                                 // If the token at the top of the stack is a function token, pop it
                                 // onto the output queue.
                                 int argCount = values.size()-previousValuesSize.pop();
-                                doFunction(values, (Function)stack.pop().getFunction(), argCount, evaluationContext);
+                                doFunction(values, stack.pop(), argCount, evaluationContext);
                             }
                             break;
                         case FUNCTION_SEPARATOR:

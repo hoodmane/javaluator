@@ -5,6 +5,7 @@ import com.hoodiv.javaluator.Parameters;
 import com.hoodiv.javaluator.Operator;
 import com.hoodiv.javaluator.AbstractEvaluator;
 import com.hoodiv.javaluator.Constant;
+import com.hoodiv.javaluator.Token;
 import java.util.BitSet;
 import java.util.Iterator;
 
@@ -63,16 +64,17 @@ public class BooleanSetEvaluator extends AbstractEvaluator<BitSet> {
 	}
 
 	@Override
-	protected BitSet toValue(String literal, Object evaluationContext) {
+	protected BitSet toValue(Token literalTok, Object evaluationContext) {
+                String literal = literalTok.getString();
 		int length =((BitSetEvaluationContext)evaluationContext).getBitSetLength(); 
 		// A literal is composed of 0 and 1 characters. If not, it is an illegal argument
-		if (literal.length()!=length) throw new IllegalArgumentException(literal+" must have a length of "+length);
+		if (literal.length()!=length) throw literalTok.getError(literal+" must have a length of "+length);
 		BitSet result = new BitSet(length);
 		for (int i = 0; i < length; i++) {
 			if (literal.charAt(i)=='1') {
 				result.set(i);
 			} else if (literal.charAt(i)!='0') {
-				throw new IllegalArgumentException(literal+" contains the wrong character "+literal.charAt(i));
+				throw literalTok.getError(literal+" contains the wrong character "+literal.charAt(i));
 			}
 		}
 		return result;

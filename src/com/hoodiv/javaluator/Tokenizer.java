@@ -120,43 +120,48 @@ public class Tokenizer {
                 String line = lines[lineNum];
                 Matcher m = pattern.matcher(lines[lineNum]);
                 int pos = 0;
+                Token token;
                 while (m.find()) {
                         // While there's a delimiter in the string
                         if (pos != m.start()) {
                             // If there's something between the current and the previous delimiter
                             // Add to the tokens list
-                            Token token = toToken(previous, string.substring(pos, m.start()));
+                            token = toToken(previous, string.substring(pos, m.start()).trim());
                             if(token != null){
                                 token.setLineInfo(line, lineNum, pos, m.start() - 1);
                                 res.add(token);
                                 previous = token; 
                             }
                         }
-                        Token token = toToken(previous, m.group());
-                        token.setLineInfo(line, lineNum, m.start(), m.end() - 1);
-                        res.add(token);
-                        pos = m.end(); // Remember end of delimiter
-                        previous = token;
+                        token = toToken(previous, m.group().trim());
+                        if(token != null){
+                            token.setLineInfo(line, lineNum, m.start(), m.end() - 1);
+                            res.add(token);
+                            previous = token;
+                        }
+                        pos = m.end(); // Remember end of delimiter                        
                 }
                 if (pos != string.length()) {
                         // If it remains some characters in the string after last delimiter
-                       Token token = toToken(previous, string.substring(pos));
-                       token.setLineInfo(line, lineNum, pos, string.length());
-                       res.add(token);
-                       previous = token;
+                       token = toToken(previous, string.substring(pos).trim());
+                       if(token != null){                       
+                            token.setLineInfo(line, lineNum, pos, string.length());
+                            res.add(token);
+                            previous = token;
+                       }
                 }
             }
             // Return the result
             return res;
 	}
         
-        protected Token toToken(Token previous, String strToken) {
+        public Token toToken(Token previous, String strToken) {
                 strToken = strToken.trim();
                 if (strToken.isEmpty()) {
                     return null;
                 }
                 if (strToken.equals(functionArgumentSeparator)) {
-                        return Token.FUNCTION_ARG_SEPARATOR;
+                        return Token.buildArgumentSeparator(strToken);
                 } else if (functions.containsKey(strToken)) {
                         return Token.buildFunction(functions.get(strToken));
                 } else if (operators.containsKey(strToken)) {
