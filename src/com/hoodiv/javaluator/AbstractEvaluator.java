@@ -111,7 +111,7 @@ public abstract class AbstractEvaluator<T> {
 	
 
 	@SuppressWarnings("unchecked")
-	protected void output(Deque<T> values, Token token, Object evaluationContext) {
+	protected void output(Deque<T> values, Token token, EvaluationContext evaluationContext) {
 		if (token.isLiteral()) { // If the token is a literal, a constant, or a variable name
 			String literal = token.getLiteral();
 			Constant ct = this.constants.get(literal);
@@ -124,7 +124,7 @@ public abstract class AbstractEvaluator<T> {
 			Operator operator = token.getOperator();
 			values.push(evaluate(operator, getArguments(values, operator.getOperandCount()), evaluationContext));
 		} else {
-			throw token.getError("");
+			throw evaluationContext.getError("",token);
 		}
 	}
 
@@ -136,7 +136,7 @@ public abstract class AbstractEvaluator<T> {
 	 * @param evaluationContext The context of the evaluation
 	 * @return The constant's value
 	 */
-	protected T evaluate(Constant constant, Object evaluationContext) {
+	protected T evaluate(Constant constant, EvaluationContext evaluationContext) {
 		throw new RuntimeException("evaluate(Constant) is not implemented for "+constant.getName());
 	}
 	
@@ -149,7 +149,7 @@ public abstract class AbstractEvaluator<T> {
 	 * @param evaluationContext The context of the evaluation
 	 * @return The result of the operation
 	 */
-	protected T evaluate(Operator operator, Iterator<T> operands, Object evaluationContext) {
+	protected T evaluate(Operator operator, Iterator<T> operands, EvaluationContext evaluationContext) {
 		throw new RuntimeException("evaluate(Operator, Iterator) is not implemented for "+operator.getSymbol());
 	}
 	
@@ -162,14 +162,14 @@ public abstract class AbstractEvaluator<T> {
 	 * @param evaluationContext The context of the evaluation
 	 * @return The result of the function
 	 */
-	protected T evaluate(Function function, Iterator<T> arguments, Object evaluationContext) {
+	protected T evaluate(Function function, Iterator<T> arguments, EvaluationContext evaluationContext) {
 		throw new RuntimeException("evaluate(Function, Iterator) is not implemented for "+function.getName());
 	}
 	
-	protected void doFunction(Deque<T> values, Token functionTok, int argCount, Object evaluationContext) {
+	protected void doFunction(Deque<T> values, Token functionTok, int argCount, EvaluationContext evaluationContext) {
                 Function function = functionTok.getFunction();
 		if (function.getMinimumArgumentCount()>argCount || function.getMaximumArgumentCount()<argCount) {
-			throw functionTok.getError("Invalid argument count for "+function.getName());
+                    throw evaluationContext.getError("Invalid argument count for "+function.getName(),functionTok);
 		}
 		values.push(evaluate(function, getArguments(values, argCount), evaluationContext));
 	}
@@ -193,7 +193,7 @@ public abstract class AbstractEvaluator<T> {
 	 * @param evaluationContext The context of the evaluation
 	 * @throws IllegalArgumentException if the literal can't be converted to a value.
 	 */
-	protected abstract T toValue(Token literal, Object evaluationContext);
+	protected abstract T toValue(Token literal, EvaluationContext evaluationContext);
 	
 	/** Evaluates an expression.
 	 * @param expression The expression to evaluate.
@@ -214,7 +214,7 @@ public abstract class AbstractEvaluator<T> {
 	 * @throws IllegalArgumentException if the expression is not correct.
 	 * @see AbstractVariableSet
 	 */
-	public T evaluate(String expression, Object evaluationContext) {
+	public T evaluate(String expression, EvaluationContext evaluationContext) {
 		final Deque<T> values = new ArrayDeque<>(); // values stack
 		final Deque<Token> stack = new ArrayDeque<>(); // operator stack
 		final Deque<Integer> previousValuesSize = functions.isEmpty()?null:new ArrayDeque<>();
@@ -229,20 +229,20 @@ public abstract class AbstractEvaluator<T> {
                             stack.push(token);
                             if (previous!=null && previous.isFunction()) {
                                 if (!functionBrackets.containsKey(token.getBrackets().getOpen())) {
-                                    throw token.getError("Invalid bracket after function: "+strToken);
+                                    throw evaluationContext.getError("Invalid bracket after function: "+strToken,token);
                                 }
                             } else {
                                 if (!expressionBrackets.containsKey(token.getBrackets().getOpen())) {
-                                    throw token.getError("Invalid bracket in expression: "+strToken);
+                                    throw evaluationContext.getError("Invalid bracket in expression: "+strToken,token);
                                 }
                             }
                             break;
                         case CLOSE_BRACKET:
                             if (previous==null) {
-                                throw token.getError("expression can't start with a close bracket");
+                                throw evaluationContext.getError("expression can't start with a close bracket",token);
                             }
                             if (previous.isFunctionArgumentSeparator()) {
-                                throw token.getError("argument is missing");
+                                throw evaluationContext.getError("argument is missing",token);
                             }
                             BracketPair brackets = token.getBrackets();
                             // If the token is a right parenthesis:
@@ -256,7 +256,7 @@ public abstract class AbstractEvaluator<T> {
                                         openBracketFound = true;
                                         break;
                                     } else {
-                                        throw token.getError("Invalid parenthesis match "+sc.getBrackets().getOpen()+brackets.getClose());
+                                        throw evaluationContext.getError("Invalid parenthesis match "+sc.getBrackets().getOpen()+brackets.getClose(),token);
                                     }
                                 } else {
                                     output(values, sc, evaluationContext);
@@ -265,7 +265,7 @@ public abstract class AbstractEvaluator<T> {
                             if (!openBracketFound) {
                                 // If the stack runs out without finding a left parenthesis, then
                                 // there are mismatched parentheses.
-                                throw token.getError("Parentheses mismatched");
+                                throw evaluationContext.getError("Parentheses mismatched",token);
                             }
                             if (!stack.isEmpty() && stack.peek().isFunction()) {
                                 // If the token at the top of the stack is a function token, pop it
@@ -276,12 +276,12 @@ public abstract class AbstractEvaluator<T> {
                             break;
                         case FUNCTION_SEPARATOR:
                             if (previous==null) {
-                                throw token.getError("expression can't start with a function argument separator");
+                                throw evaluationContext.getError("expression can't start with a function argument separator",token);
                             }
                             // Verify that there was an argument before this separator
                             if (previous.isOpenBracket() || previous.isFunctionArgumentSeparator()) {
                                 // The cases were operator miss an operand are detected elsewhere.
-                                throw token.getError("argument is missing");
+                                throw evaluationContext.getError("argument is missing",token);
                             }
                             // If the token is a function argument separator
                             boolean pe = false;
@@ -298,14 +298,14 @@ public abstract class AbstractEvaluator<T> {
                             if (!pe) {
                                 // If no left parentheses are encountered, either the separator was misplaced
                                 // or parentheses were mismatched.
-                                throw token.getError("Separator or parentheses mismatched");
+                                throw evaluationContext.getError("Separator or parentheses mismatched",token);
                             } else {
                                 // Verify we are in function scope
                                 Token openBracket = stack.pop();
                                 Token scopeToken = stack.peek();
                                 stack.push(openBracket);
                                 if (!scopeToken.isFunction()) {
-                                    throw token.getError("Argument separator used outside of function scope");
+                                    throw evaluationContext.getError("Argument separator used outside of function scope",token);
                                 }
                             }
                             break;
@@ -341,7 +341,7 @@ public abstract class AbstractEvaluator<T> {
                         case LITERAL:
                             // If the token is a number (identifier), a constant or a variable, then add its value to the output queue.
                             if ((previous!=null) && previous.isLiteral()) {
-                                throw token.getError("A literal can't follow another literal");
+                                throw evaluationContext.getError("A literal can't follow another literal",token);
                             }
                             output(values, token, evaluationContext);
                             break;
@@ -355,7 +355,7 @@ public abstract class AbstractEvaluator<T> {
 		while (!stack.isEmpty()) {
 			Token sc = stack.pop();
 			if (sc.isOpenBracket() || sc.isCloseBracket()) {
-				throw sc.getError("Parentheses mismatched");
+				throw evaluationContext.getError("Parentheses mismatched",sc);
 			}
 			output(values, sc, evaluationContext);
 		}

@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import com.hoodiv.javaluator.DoubleEvaluator;
+import com.hoodiv.javaluator.EvaluationContext;
 import com.hoodiv.javaluator.Parameters;
 import com.hoodiv.javaluator.Token;
 
@@ -38,7 +39,7 @@ public class LocalizedEvaluator extends DoubleEvaluator {
 	}
 
 	@Override
-	protected Double toValue(Token literalTok, Object evaluationContext) {
+	protected Double toValue(Token literalTok, EvaluationContext evaluationContext) {
 		// Override the method that converts a literal to a number, in order to match with
 		// the French decimal separator
                 String literal = literalTok.getString();
@@ -49,7 +50,7 @@ public class LocalizedEvaluator extends DoubleEvaluator {
 			return format.parse(literal).doubleValue();
 		} catch (ParseException e) {
 			// If the number has a wrong format, throw the right exception.
-			throw literalTok.getError(literal+" is not a number");
+			throw evaluationContext.getError(literal+" is not a number",literalTok);
 		}
 	}
 	

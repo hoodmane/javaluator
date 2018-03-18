@@ -195,12 +195,12 @@ public class DoubleEvaluator extends AbstractEvaluator<Double> {
 	}
 
 	@Override
-	protected Double toValue(Token literalTok, Object evaluationContext) {
+	protected Double toValue(Token literalTok, EvaluationContext evaluationContext) {
 		ParsePosition p = new ParsePosition(0);
                 String literal = literalTok.getString();
 		Number result = FORMATTER.get().parse(literal, p);
 		if (p.getIndex()==0 || p.getIndex()!=literal.length()) {
-			throw literalTok.getError(literal+" is not a number");
+			throw evaluationContext.getError(literal+" is not a number",literalTok);
 		}
 		return result.doubleValue();
 	}
@@ -209,7 +209,7 @@ public class DoubleEvaluator extends AbstractEvaluator<Double> {
 	 * @see net.astesana.javaluator.AbstractEvaluator#evaluate(net.astesana.javaluator.Constant)
 	 */
 	@Override
-	protected Double evaluate(Constant constant, Object evaluationContext) {
+	protected Double evaluate(Constant constant, EvaluationContext evaluationContext) {
 		if (PI.equals(constant)) {
 			return Math.PI;
 		} else if (E.equals(constant)) {
@@ -223,7 +223,7 @@ public class DoubleEvaluator extends AbstractEvaluator<Double> {
 	 * @see net.astesana.javaluator.AbstractEvaluator#evaluate(net.astesana.javaluator.Operator, java.util.Iterator)
 	 */
 	@Override
-	protected Double evaluate(Operator operator, Iterator<Double> operands, Object evaluationContext) {
+	protected Double evaluate(Operator operator, Iterator<Double> operands, EvaluationContext evaluationContext) {
 		if (NEGATE.equals(operator) || NEGATE_HIGH.equals(operator)) {
 			return -operands.next();
 		} else if (MINUS.equals(operator)) {
@@ -247,7 +247,7 @@ public class DoubleEvaluator extends AbstractEvaluator<Double> {
 	 * @see net.astesana.javaluator.AbstractEvaluator#evaluate(net.astesana.javaluator.Function, java.util.Iterator)
 	 */
 	@Override
-	protected Double evaluate(Function function, Iterator<Double> arguments, Object evaluationContext) {
+	protected Double evaluate(Function function, Iterator<Double> arguments, EvaluationContext evaluationContext) {
 		Double result;
 		if (ABS.equals(function)) {
 			result = Math.abs(arguments.next());

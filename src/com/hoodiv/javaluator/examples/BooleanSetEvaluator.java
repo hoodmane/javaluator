@@ -5,6 +5,7 @@ import com.hoodiv.javaluator.Parameters;
 import com.hoodiv.javaluator.Operator;
 import com.hoodiv.javaluator.AbstractEvaluator;
 import com.hoodiv.javaluator.Constant;
+import com.hoodiv.javaluator.EvaluationContext;
 import com.hoodiv.javaluator.Token;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ public class BooleanSetEvaluator extends AbstractEvaluator<BitSet> {
 	/** The false constant. */
 	public final static Constant FALSE = new Constant("false");
 	
-	public static class BitSetEvaluationContext {
+	public static class BitSetEvaluationContext implements EvaluationContext {
 		/** The bitset's length. */
 		private int bitSetLength;
 		public BitSetEvaluationContext(int bitSetLength) {
@@ -64,24 +65,24 @@ public class BooleanSetEvaluator extends AbstractEvaluator<BitSet> {
 	}
 
 	@Override
-	protected BitSet toValue(Token literalTok, Object evaluationContext) {
+	protected BitSet toValue(Token literalTok, EvaluationContext evaluationContext) {
                 String literal = literalTok.getString();
 		int length =((BitSetEvaluationContext)evaluationContext).getBitSetLength(); 
 		// A literal is composed of 0 and 1 characters. If not, it is an illegal argument
-		if (literal.length()!=length) throw literalTok.getError(literal+" must have a length of "+length);
+		if (literal.length()!=length) throw evaluationContext.getError(literal+" must have a length of "+length,literalTok);
 		BitSet result = new BitSet(length);
 		for (int i = 0; i < length; i++) {
 			if (literal.charAt(i)=='1') {
 				result.set(i);
 			} else if (literal.charAt(i)!='0') {
-				throw literalTok.getError(literal+" contains the wrong character "+literal.charAt(i));
+				throw evaluationContext.getError(literal+" contains the wrong character "+literal.charAt(i),literalTok);
 			}
 		}
 		return result;
 	}
 
 	@Override
-	protected BitSet evaluate(Operator operator, Iterator<BitSet> operands, Object evaluationContext) {
+	protected BitSet evaluate(Operator operator, Iterator<BitSet> operands, EvaluationContext evaluationContext) {
 		// Implementation of supported operators
 		BitSet o1 = operands.next();
 		if (operator == NEGATE) {
@@ -101,7 +102,7 @@ public class BooleanSetEvaluator extends AbstractEvaluator<BitSet> {
 	}
 	
 	@Override
-	protected BitSet evaluate(Constant constant, Object evaluationContext) {
+	protected BitSet evaluate(Constant constant, EvaluationContext evaluationContext) {
 		// Implementation of supported constants
 		int length = ((BitSetEvaluationContext)evaluationContext).getBitSetLength();
 		BitSet result;

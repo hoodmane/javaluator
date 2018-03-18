@@ -53,7 +53,7 @@ public class Token {
         }        
 
         private static final int LINE_CHARS_TO_SHOW = 30;
-        public IllegalArgumentException getError(String msg){
+        public String appendTokenInfo(String msg){
             msg += "\n";
             if(line.length()>LINE_CHARS_TO_SHOW){
                 
@@ -63,7 +63,7 @@ public class Token {
                 msg += "   " + String.join("",Collections.nCopies(startPosition, " ")) + "^";
             }
             
-            return new IllegalArgumentException(msg + "\n ");
+            return msg + "\n";
         }
         
         public Token setLineInfo(String line, int lineNum, int startPosition, int endPosition){

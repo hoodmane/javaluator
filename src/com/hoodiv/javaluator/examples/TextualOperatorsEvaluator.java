@@ -6,8 +6,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.hoodiv.javaluator.AbstractEvaluator;
+import com.hoodiv.javaluator.EvaluationContext;
 import com.hoodiv.javaluator.Operator;
 import com.hoodiv.javaluator.Parameters;
+import com.hoodiv.javaluator.StaticVariableSet;
 import com.hoodiv.javaluator.Token;
 
 public class TextualOperatorsEvaluator extends AbstractEvaluator<Boolean> {
@@ -34,13 +36,13 @@ public class TextualOperatorsEvaluator extends AbstractEvaluator<Boolean> {
 	}
 
 	@Override
-	protected Boolean toValue(Token literalTok, Object evaluationContext) {
+	protected Boolean toValue(Token literalTok, EvaluationContext evaluationContext) {
                 String literal = literalTok.getString();
 		int index = literal.indexOf('=');
 		if (index>=0) {
 			String variable = literal.substring(0, index);
 			String value = literal.substring(index+1);
-			return value.equals(((Map<String, String>)evaluationContext).get(variable));
+			return value.equals(((StaticVariableSet)evaluationContext).get(variable));
 		} else {
 			return Boolean.valueOf(literal);
 		}
@@ -48,7 +50,7 @@ public class TextualOperatorsEvaluator extends AbstractEvaluator<Boolean> {
 
 	@Override
 	protected Boolean evaluate(Operator operator,
-			Iterator<Boolean> operands, Object evaluationContext) {
+			Iterator<Boolean> operands, EvaluationContext evaluationContext) {
 		if (operator == NEGATE) {
 			return !operands.next();
 		} else if (operator == OR) {
@@ -69,12 +71,13 @@ public class TextualOperatorsEvaluator extends AbstractEvaluator<Boolean> {
 //		return Arrays.asList(expression.split("\\s"));
 //	}
 	
+        
 	public static void main(String[] args) {
-		Map<String,String> variableToValue = new HashMap<String, String>();
-		variableToValue.put("type", "PORT");
+		StaticVariableSet variableSet = new StaticVariableSet();
+		variableSet.set("type", "PORT");
 		AbstractEvaluator<Boolean> evaluator = new TextualOperatorsEvaluator();
-		System.out.println ("type=PORT -> "+evaluator.evaluate("type=PORT", variableToValue));
-		System.out.println ("type=NORTH -> "+evaluator.evaluate("type=NORTH", variableToValue));
-		System.out.println ("type=PORT AND true -> "+evaluator.evaluate("type=PORT AND true", variableToValue));
+		System.out.println ("type=PORT -> "+evaluator.evaluate("type=PORT", variableSet));
+		System.out.println ("type=NORTH -> "+evaluator.evaluate("type=NORTH", variableSet));
+		System.out.println ("type=PORT AND true -> "+evaluator.evaluate("type=PORT AND true", variableSet));
 	}
 }

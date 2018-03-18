@@ -3,6 +3,7 @@ package com.hoodiv.javaluator.examples;
 import com.hoodiv.javaluator.Parameters;
 import com.hoodiv.javaluator.Operator;
 import com.hoodiv.javaluator.AbstractEvaluator;
+import com.hoodiv.javaluator.EvaluationContext;
 import com.hoodiv.javaluator.Token;
 import java.util.Iterator;
 
@@ -33,12 +34,12 @@ public class SimpleBooleanEvaluator extends AbstractEvaluator<Boolean> {
 	}
 
 	@Override
-	protected Boolean toValue(Token literal, Object evaluationContext) {
+	protected Boolean toValue(Token literal, EvaluationContext evaluationContext) {
 		return Boolean.valueOf(literal.getString());
 	}
 
 	@Override
-	protected Boolean evaluate(Operator operator, Iterator<Boolean> operands, Object evaluationContext) {
+	protected Boolean evaluate(Operator operator, Iterator<Boolean> operands, EvaluationContext evaluationContext) {
 		if (operator == NEGATE) {
 			return !operands.next();
 		} else if (operator == OR) {

@@ -7,7 +7,7 @@ package com.hoodiv.javaluator;
  * @author Jean-Marc Astesana
  * @see <a href="../../../license.html">License information</a>
  */
-public interface AbstractVariableSet<T> {
+public interface AbstractVariableSet<T> extends EvaluationContext {
 	/** Gets the value of a variable.
 	 * @param variableName The name of a variable
 	 * @return the variable's value or null if the variable is unknown

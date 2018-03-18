@@ -3,6 +3,7 @@ package com.hoodiv.javaluator.examples;
 import java.util.Iterator;
 
 import com.hoodiv.javaluator.DoubleEvaluator;
+import com.hoodiv.javaluator.EvaluationContext;
 import com.hoodiv.javaluator.Function;
 import com.hoodiv.javaluator.Parameters;
 
@@ -25,7 +26,7 @@ public class ExtendedDoubleEvaluator extends DoubleEvaluator {
 	}
 
 	@Override
-	protected Double evaluate(Function function, Iterator<Double> arguments, Object evaluationContext) {
+	protected Double evaluate(Function function, Iterator<Double> arguments, EvaluationContext evaluationContext) {
 		if (function == SQRT) {
 			// Implements the new function
 			return Math.sqrt(arguments.next());
